@@ -1,5 +1,9 @@
-# AoC 2022 day 16
+import time
 import sys
+import itertools
+
+import scipy.sparse as ss
+import numpy as np
 
 
 def _parse(line):
@@ -7,87 +11,81 @@ def _parse(line):
     return a, (int(b[5:-1]), {c.strip(",") for c in cs})
 
 
-def hash_valve_pair(a, b):
-    return "".join(sorted([a, b]))
+def get_pairwise_distances(valves):
+    V = sorted(valves.keys())
+    n = len(V)
+
+    g = np.zeros((n, n))
+    for i, v in enumerate(V):
+        _, U = valves[v]
+        for u in U:
+            g[i, V.index(u)] = 1
+
+    # find shortest pairwise distances
+    g = ss.csr_matrix(g)
+    d = ss.csgraph.floyd_warshall(g, directed=False, unweighted=True)
+
+    return {V[i]: {V[j]: int(d[i][j]) for j in range(n)} for i in range(n)}
 
 
-def find_shortest_paths(valve, valves):
-    visited = {valve}
-    distances = {}
-    _, neighbors = valves[valve]
-    for distance in range(1, 100):
-        next_neighbors = []
-
-        for neighbor in neighbors:
-            visited.add(neighbor)
-            _, n2s = valves[neighbor]
-            next_neighbors.extend([nbr for nbr in n2s if nbr not in visited])
-            distances[hash_valve_pair(valve, neighbor)] = distance
-
-        neighbors = set(next_neighbors)
-        if neighbors == {}:
-            break
-
-    return distances
+valves_full = dict(_parse(line) for line in open(sys.argv[1]).readlines())
+valves = {k: v for k, v in valves_full.items() if k == "AA" or v[0] > 0}
+distances = get_pairwise_distances(valves_full)
 
 
-def maximum_flow_naive(node, n, valves, visited):
-    if n <= 1:
-        return 0
-
-    flow, neighbors = valves[node]
-    f1 = max(maximum_flow_naive(nb, n - 1, valves, visited) for nb in neighbors)
-
-    if node in visited:
-        return f1
-
-    f2 = flow * (n - 1) + max(
-        maximum_flow_naive(nb, n - 2, valves, {*visited, node}) for nb in neighbors
+def upper_bound(n, node, explored):
+    return sum(
+        max((n - distances[node][next_node] - 1) * f, 0)
+        for next_node, (f, _) in valves.items()
+        if next_node not in explored
     )
 
-    return max(f1, f2)
+
+def maximum_flow_bounded(t0, node, flow, max_flow, explored):
+    remaining = [v for v in valves if v not in explored]
+    for next_node in remaining:
+        t1 = t0 - distances[node][next_node] - 1
+        if t1 < 1:
+            continue
+
+        f_n = flow + valves[next_node][0] * t1
+        e_n = {*explored, next_node}
+
+        if f_n + upper_bound(t1, next_node, e_n) > max_flow:
+            f = maximum_flow_bounded(t1, next_node, f_n, max_flow, e_n)
+            max_flow = max(f, max_flow)
+
+    return max(max_flow, flow)
 
 
-def maximum_flow2(valve, n, visited, valves, distances):
-    if n <= 1:
-        return 0
+def maximum_flow_bounded2(t00, t01, node1, node2, flow, max_flow, explored):
+    if t00 < 1 and t01 < 1:
+        return max_flow
 
-    next_valves = [(v, f) for v, (f, _) in valves.items() if v not in visited]
-    ds = [n - 1 - distances[hash_valve_pair(valve, v)] for v, _ in next_valves]
+    remaining = [v for v in valves if v not in explored]
+    for next1, next2 in itertools.permutations(remaining, 2):
+        t10 = max(t00 - distances[node1][next1] - 1, 0)
+        t11 = max(t01 - distances[node2][next2] - 1, 0)
 
-    flows = [
-        f * m + maximum_flow2(v, m, {v, *visited}, valves, distances)
-        for (v, f), m in zip(next_valves, ds)
-    ]
+        f_n = flow + valves[next1][0] * t10 + valves[next2][0] * t11
+        e_n = {*explored, next1, next2}
 
-    return max(flows + [0])
+        bound = max(upper_bound(t10, next1, e_n), upper_bound(t11, next2, e_n))
+        if f_n + bound > max_flow:
+            f = maximum_flow_bounded2(t10, t11, next1, next2, f_n, max_flow, e_n)
+            max_flow = max(f, max_flow)
 
-
-def maximum_flow3(v1, v2, n, visted, valves):
-    return 0
-
-
-valves = dict(_parse(line) for line in open(sys.argv[1]).readlines())
-shortest_paths = {
-    k: v for valve in valves for k, v in find_shortest_paths(valve, valves).items()
-}
-
-visited = {valve for valve, (flow, _) in valves.items() if flow == 0}
-print(maximum_flow2("AA", 5, visited, valves, shortest_paths))
+    return max(max_flow, flow)
 
 
-# import json
-#
-# count = 0
-# with open("d.json") as f:
-#     d = json.load(f)
-#     for k, v in d.items():
-#         if k not in shortest_paths:
-#             break
-#         if shortest_paths[k] != v:
-#             count += 1
-#             print(f"-------\n{k}: {v}, {shortest_paths[k]}")
-# print(count / len(shortest_paths))
-#
-# with open("d.json", "w") as f:
-#     json.dump(shortest_paths, f)
+# part 1
+t0 = time.perf_counter_ns()
+print(maximum_flow_bounded(30, "AA", 0, 0, {"AA"}))
+t1 = time.perf_counter_ns()
+print(f"elapsed: {(t1 - t0) / 1e6:0.2f}ms")
+
+# part 2
+t0 = time.perf_counter_ns()
+print(maximum_flow_bounded2(26, 26, "AA", "AA", 0, 0, {"AA"}))
+t1 = time.perf_counter_ns()
+print(f"elapsed: {(t1 - t0) / 1e6:0.2f}ms")
