@@ -10,4 +10,3 @@ print(-ds[0])
 
 # part 2
 print(-sum(ds[:3]))
-

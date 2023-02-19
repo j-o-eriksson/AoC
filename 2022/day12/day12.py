@@ -18,7 +18,6 @@ class Climber:
         self.unvisited = {}
         self.starting_positions = [k for k, (h, _) in self.grid.items() if h == "a"]
 
-
     def can_step(self, curr_pos, next_pos):
         if next_pos in self.visited or next_pos not in self.grid:
             return False
@@ -45,7 +44,9 @@ class Climber:
         self._probe_neighborhood(start)
 
         while True:
-            new_loc, (h, step_count) = min(self.unvisited.items(), key=lambda x: x[1][1])
+            new_loc, (h, step_count) = min(
+                self.unvisited.items(), key=lambda x: x[1][1]
+            )
             del self.unvisited[new_loc]
             self.grid[new_loc] = (h, step_count)
 

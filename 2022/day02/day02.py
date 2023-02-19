@@ -37,5 +37,5 @@ for line in stuff:
     opponent, outcome = tuple(line)
     outcome_score = outcome_to_score[outcome]
     [move] = [ss[1] for ss in p2s[outcome_score] if ss[0] == opponent]
-    score += (outcome_score + move_to_score[move]) 
+    score += outcome_score + move_to_score[move]
 print(score)

@@ -37,7 +37,6 @@ def visualize(elves):
         )
 
 
-
 ls = [list(line.strip()) for line in open(sys.argv[1]).readlines()]
 elves = {(r, c) for r, row in enumerate(ls) for c, val in enumerate(row) if val == "#"}
 
@@ -75,6 +74,3 @@ ys = [r for r, _ in elves]
 visualize(elves)
 print((max(xs) - min(xs) + 1) * (max(ys) - min(ys) + 1) - len(elves))
 print(i)
-
-
-

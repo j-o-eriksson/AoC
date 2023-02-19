@@ -1,5 +1,4 @@
 # AoC 2022 day 15
-import math
 import re
 import sys
 
@@ -13,7 +12,6 @@ def _parse(line):
 
 
 def find_gaps(data, y):
-    line = set()
     rs = []
     for (sx, sy), dist in data:
         dy = abs(sy - y)

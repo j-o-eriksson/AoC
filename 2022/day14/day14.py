@@ -43,6 +43,6 @@ def run(rocks):
                 #     return len(rocks) - rock_count
 
 
-rock_segments = [_parse(l) for l in open(sys.argv[1]).read().splitlines()]
+rock_segments = [_parse(line) for line in open(sys.argv[1]).read().splitlines()]
 rocks = {r for segment in rock_segments for r in _get_rocks(segment)}
 print(run(rocks))

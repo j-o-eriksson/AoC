@@ -10,12 +10,14 @@ def _parse(line):
 
 stuff = [_parse(line) for line in input_string.split()]
 
+
 # part 1
 def _contains(a, b):
     return int(a[0]) <= int(b[0]) and int(a[1]) >= int(b[1])
 
 
 print(sum(_contains(a, b) or _contains(b, a) for a, b in stuff))
+
 
 # part 2
 def _no_overlap(a, b):
