@@ -6,7 +6,7 @@ from typing import Dict
 from dataclasses import dataclass
 
 
-def parse(s):
+def _parse(s):
     b, cs = s.split(": ")
     _, blueprint_id = b.split()
 
@@ -100,25 +100,22 @@ class DepthFirst:
 
 
 if __name__ == "__main__":
-    blueprints = [parse(line) for line in open(sys.argv[1]).readlines()]
+    blueprints = [_parse(line) for line in open(sys.argv[1]).readlines()]
 
     production = {"ore": 1, "clay": 0, "obsidian": 0, "geode": 0}
     resources = {"ore": 0, "clay": 0, "obsidian": 0, "geode": 0}
 
-    # part 1
-    q1 = 0
-    start1 = State(24, production, resources)
-    for i, blueprint in enumerate(blueprints):
+    def _run(start, blueprint):
         explorer = DepthFirst("geode", blueprint)
-        explorer.branch_and_bound(start1)
-        q1 += (i + 1) * explorer.best
+        explorer.branch_and_bound(start)
+        return explorer.best
+
+    # part 1
+    start1 = State(24, production, resources)
+    q1 = sum((i + 1) * _run(start1, b) for i, b in enumerate(blueprints))
     print(f"part 1: {q1}")
 
     # part 2
-    q2 = 1
-    start1 = State(32, production, resources)
-    for blueprint in blueprints[:3]:
-        explorer = DepthFirst("geode", blueprint)
-        explorer.branch_and_bound(start1)
-        q2 *= explorer.best
+    start2 = State(32, production, resources)
+    q2 = math.prod(_run(start2, b) for b in blueprints[:3])
     print(f"part 2: {q2}")
