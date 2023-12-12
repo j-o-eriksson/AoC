@@ -22,6 +22,6 @@ cmax = max(c for _, c in g)
 emptyrows = [r for r in range(rmax) if r not in {r for r, _ in g}]
 emptycols = [c for c in range(cmax) if c not in {c for _, c in g}]
 c1 = sum(dist(a, b) for a, b in itertools.combinations(g, 2))
-c2 = sum(more(e, g, 0) for e in emptyrows)
-c3 = sum(more(e, g, 1) for e in emptycols)
+c2 = sum(more(r, g, 0) for r in emptyrows)
+c3 = sum(more(c, g, 1) for c in emptycols)
 print(c1 + c2 + c3)
