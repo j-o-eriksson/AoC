@@ -12,10 +12,8 @@ fs = {
 }
 
 
-ss = ["five", "four", "house", "three", "twopair", "pair", "high"]
-
-
 def test(hand):
+    ss = ["five", "four", "house", "three", "twopair", "pair", "high"]
     return next(-i for i, s in enumerate(ss) if fs[s](hand))
 
 
@@ -33,7 +31,7 @@ print(sum(rank * h[-1] for rank, h in enumerate(sorted(ranks), 1)))
 
 
 # part 2
-def upgrade(hand:str):
+def upgrade(hand: str):
     if "J" not in hand or hand == "JJJJJ":
         return hand
 
