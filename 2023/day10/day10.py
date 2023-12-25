@@ -1,11 +1,30 @@
 # AoC 2023 day 10
 import sys
 
+
+def walk(start, m, blocks):
+    curr = start
+    prev = start
+    visited = []
+
+    while True:
+        visited.append(curr)
+        r, c = curr
+        opts = [(r + dr, c + dc) for dr, dc in blocks[m[curr]]]
+        nxt = next(p for p in opts if p != prev)
+
+        prev = curr
+        curr = nxt
+        if curr == start:
+            break
+
+    return visited
+
+
 lines = open(sys.argv[1]).read().splitlines()
 m = {(r, c): x for r, line in enumerate(lines) for c, x in enumerate(line)}
 
-dirs = {(-1, 0), (0, -1), (1, 0), (0, 1)}
-left, up, right, down = dirs
+left, up, right, down = (0, -1), (-1, 0), (0, 1), (1, 0)
 blocks = {
     "L": {right, up},
     "F": {right, down},
@@ -13,19 +32,24 @@ blocks = {
     "|": {up, down},
     "J": {left, up},
     "7": {left, down},
+    "S": {right, up},  # hard coded
 }
 
 
-def walk(m):
-    prev = next(p for p, x in m.items() if x == "S")
-    curr = prev
+start = next(p for p, x in m.items() if x == "S")
+path = walk(start, m, blocks)
 
-    while True:
-        r, c = curr
-        for dr, dc in dirs:
-            curr = (r + dr, c + dc)
-            if curr != prev and curr in m and m[curr] != ".":
-                break
+# part 1
+n = len(path) // 2
+print(n, path[n])
+
+# part 2
 
 
-walk(m)
+rmax = max(r for r, _ in path)
+cmax = max(c for _, c in path)
+grid = [[" " for _ in range(cmax + 1)] for _ in range(rmax + 1)]
+for r, c in path:
+    grid[r][c] = "O"
+for r in grid:
+    print("".join(r))
