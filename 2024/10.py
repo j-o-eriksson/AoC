@@ -12,10 +12,7 @@ def explore(g: dict, start: tuple[Vec2, int]):
             out.append(p)
             return out
 
-        pps = []
-        for v in vs:
-            if g.get(p + v, 1337) - x == 1:
-                pps.append((p + v, g[p + v]))
+        pps = [(p + v, g[p + v]) for v in vs if g.get(p + v, 1337) - x == 1]
 
         if len(pps) > 0:
             trail.append(pps.pop())
